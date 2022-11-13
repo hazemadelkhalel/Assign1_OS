@@ -144,6 +144,8 @@ class Consumer implements Runnable{
         consume();
     }
 
+    // hazem
+
     @Deprecated
 
     public void stop() {

@@ -195,6 +195,7 @@ public class Main {
         producerThread.start();
         consumerThread.start();
         try {
+            
             producerThread.join();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);

@@ -48,6 +48,8 @@ class myThread2 extends Thread{
 class myThread3 extends Thread{
     Printer printer;
     int id;
+    
+    
     myThread3(Printer p, int i){
         printer = p;
         id = i;

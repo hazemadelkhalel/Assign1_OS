@@ -185,6 +185,7 @@ public class Main {
     public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
         int n, bf;
+        //mariam
         n = input.nextInt();
         bf = input.nextInt();
         dataQueue data = new dataQueue(bf, n);

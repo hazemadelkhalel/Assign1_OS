@@ -1,46 +1,46 @@
+import java.io.*;
 import java.util.LinkedList;
-import java.util.Scanner;
-
 import java.util.Queue;
+import java.util.StringTokenizer;
 
 
 class dataQueue {
     private final Queue<Integer> queue = new LinkedList<>();
     private final LinkedList<Integer> primes = new LinkedList<>();
-    private final Object fullQueue = new Object();
-    private final Object emptyQueue = new Object();
-    private boolean isFinished = false;
-    private final int buffering_size;
+    private final Object FULL_STATE = new Object();
+    private final Object EMPTY_STATE = new Object();
+    private final int BUFFERING_SIZE, N;
     private int lastPosition;
-    private final int N;
 
-    public dataQueue(int b, int n) {
-        buffering_size = b;
+    public dataQueue(int n, int bufferSize) {
         N = n;
+        BUFFERING_SIZE = bufferSize;
     }
 
-    public static boolean isprime(int value){
-        if(value < 2){
+    public static boolean isPrime(int number){
+        if(number < 2){
             return false;
         }
-        for (int i = 2; i * i <= value; i++){
-            if(value % i == 0){
+        for (int divisor = 2; divisor * divisor <= number; divisor++){
+            if(number % divisor == 0){
                 return false;
             }
         }
         return true;
     }
-    public void generate(){
+    public void generatePrimes(){
         for (int number = 0; number <= N; number++) {
-            if(!isprime(number))continue;
+            if(!isPrime(number))continue;
             primes.add(number);
         }
     }
     public int nextPrime(){
-        if(lastPosition == primes.size()){
+        if(lastPosition >= primes.size()){
             return -1;
         }
-        return primes.get(lastPosition++);
+        int prime = primes.get(lastPosition);
+        lastPosition++;
+        return prime;
     }
     public void add(int value){
         synchronized (queue){
@@ -53,39 +53,38 @@ class dataQueue {
         }
     }
     boolean isFull(){
-        return queue.size() == buffering_size;
+        return queue.size() >= BUFFERING_SIZE;
     }
     boolean isEmpty(){
         return queue.size() == 0;
     }
-    public void waitOnFull() throws InterruptedException {
-        synchronized (fullQueue) {
-            fullQueue.wait();
+    public void waitingFullState() throws InterruptedException {
+        synchronized (FULL_STATE) {
+            FULL_STATE.wait();
         }
     }
-    public void notifyAllForFull() {
-        synchronized (fullQueue) {
-            fullQueue.notifyAll();
+    public void notifyFullState() {
+        synchronized (FULL_STATE) {
+            FULL_STATE.notifyAll();
         }
     }
-    public void waitOnEmpty() throws InterruptedException {
-        synchronized (emptyQueue) {
-            emptyQueue.wait();
+    public void waitEmptyState() throws InterruptedException {
+        synchronized (EMPTY_STATE) {
+            EMPTY_STATE.wait();
         }
     }
-    public void notifyAllForEmpty() {
-        synchronized (emptyQueue) {
-            emptyQueue.notify();
+    public void notifyEmptyState() {
+        synchronized (EMPTY_STATE) {
+            EMPTY_STATE.notify();
         }
-    }
-    public void setFinished(){
-        isFinished = true;
-    }
-    public boolean getFinished(){
-        return isFinished;
     }
     public boolean exist(){
-        return lastPosition < primes.size() || !isEmpty();
+        if(!isEmpty() || lastPosition < primes.size()){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 }
 
@@ -104,19 +103,18 @@ class Producer implements Runnable{
     @Deprecated
     public void stop() {
         isRunning = false;
-        data.notifyAllForEmpty();
+        data.notifyEmptyState();
     }
     public void produce(){
         while (isRunning) {
             int prime = data.nextPrime();
             if (prime == -1){
-                data.setFinished();
                 stop();
-                break;
+                return;
             }
             while (data.isFull()) {
                 try {
-                    data.waitOnFull();
+                    data.waitingFullState();
                 } catch (InterruptedException e) {
                     break;
                 }
@@ -124,19 +122,27 @@ class Producer implements Runnable{
             if (!isRunning) {
                 break;
             }
-            data.add(prime);
-            data.notifyAllForEmpty();
+            else {
+                data.add(prime);
+                data.notifyEmptyState();
+            }
         }
     }
 }
 
 class Consumer implements Runnable{
     dataQueue data;
+    static PrintWriter output;
     private volatile boolean isRunning;
 
-    Consumer(dataQueue d){
+    Consumer(dataQueue d, String outputFileName){
         data = d;
         isRunning = true;
+        try {
+            output = new PrintWriter(outputFileName);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
     @Override
     public void run(){
@@ -144,60 +150,91 @@ class Consumer implements Runnable{
         consume();
     }
 
-    // hazem
-
     @Deprecated
 
     public void stop() {
         isRunning = false;
-        data.notifyAllForEmpty();
+        data.notifyEmptyState();
     }
     public void consume(){
         while (isRunning){
+            try {
+                Thread.sleep(15);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             if(!data.exist()){
                 stop();
-                break;
+                output.close();
+                return;
             }
             if (data.isEmpty()) {
                 try {
-                    data.waitOnEmpty();
+                    data.waitEmptyState();
                 } catch (InterruptedException e) {
                     break;
                 }
             }
             int prime = data.remove();
-            if (!isRunning) {
-                break;
-            }
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            System.out.println(prime);
-            data.notifyAllForFull();
+            output.println(prime);
+            data.notifyFullState();
         }
     }
 }
-public class Main {
-    // mariem shatra fel coding
 
-    public static void main(String[] args) {
-        Scanner input = new Scanner(System.in);
-        int n, bf;
-        //mariam
-        n = input.nextInt();
-        bf = input.nextInt();
-        dataQueue data = new dataQueue(bf, n);
-        data.generate();
+public class Main {
+    static class FastScanner {
+        BufferedReader in;
+        StringTokenizer st;
+
+        public FastScanner() {
+            try {
+                this.in = new BufferedReader(new InputStreamReader(System.in));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public String nextToken() {
+            while (st == null || !st.hasMoreTokens()) {
+                try {
+                    st = new StringTokenizer(in.readLine());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return st.nextToken();
+        }
+
+        public int nextInt() {
+            return Integer.parseInt(nextToken());
+        }
+
+        public long nextLong() {
+            return Long.parseLong(nextToken());
+        }
+
+    }
+    public static void main(String[] args){
+        FastScanner input = new FastScanner();
+        int N, BUFFERING_SIZE;
+        String outputFileName;
+
+        N = input.nextInt();
+        BUFFERING_SIZE = input.nextInt();
+        outputFileName = input.nextToken();
+
+        dataQueue data = new dataQueue(N, BUFFERING_SIZE);
+        data.generatePrimes();
         Producer producer = new Producer(data);
-        Consumer consumer = new Consumer(data);
+        Consumer consumer = new Consumer(data, outputFileName);
         Thread producerThread = new Thread(producer);
         Thread consumerThread = new Thread(consumer);
+
         producerThread.start();
         consumerThread.start();
+
         try {
-            
             producerThread.join();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -207,9 +244,6 @@ public class Main {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        producer.stop();
-        consumer.stop();
-        input.close();
     }
 
 }

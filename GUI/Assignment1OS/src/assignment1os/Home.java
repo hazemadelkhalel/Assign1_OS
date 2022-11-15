@@ -8,6 +8,7 @@ package assignment1os;
  *
  * @author DELL
  */
+import java.util.*;
 import java.io.*;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -21,42 +22,22 @@ import java.time.Instant;
 
 
 class dataQueue {
-    private final Queue<Integer> queue = new LinkedList<>();
-    private final LinkedList<Integer> primes = new LinkedList<>();
+    private final int []queue;
     private final Object FULL_STATE = new Object();
     private final Object EMPTY_STATE = new Object();
-    private final int BUFFERING_SIZE, N;
-    private int lastPosition, numOfPrimes, maxPrime = -1;
+    public final int BUFFERING_SIZE, N;
+    public int lastPosition, numOfPrimes, maxPrime = -1;
+    private int curIndex, prevIndex, counter;
 
     public dataQueue(int n, int bufferSize) {
         N = n;
         BUFFERING_SIZE = bufferSize;
+        queue = new int[BUFFERING_SIZE];
+        curIndex = -1;
+        prevIndex = 0;
+        counter = 0;
     }
-
-    public static boolean isPrime(int number){
-        if(number < 2){
-            return false;
-        }
-        for (int divisor = 2; divisor * divisor <= number; divisor++){
-            if(number % divisor == 0){
-                return false;
-            }
-        }
-        return true;
-    }
-    public void generatePrimes(){
-        for (int number = 0; number <= N; number++) {
-            if(!isPrime(number))continue;
-            primes.add(number);
-        }
-        numOfPrimes = primes.size();
-        if(primes.size() > 0)
-        {
-            maxPrime = primes.getLast();
-
-        }
-        
-    }
+    
     public int getMaxPrime()
     {
         return maxPrime;
@@ -69,29 +50,28 @@ class dataQueue {
     {
         return lastPosition;
     }
-    public int nextPrime(){
-        if(lastPosition >= primes.size()){
-            return -1;
-        }
-        int prime = primes.get(lastPosition);
-        lastPosition++;
-        return prime;
-    }
     public void add(int value){
         synchronized (queue){
-            queue.add(value);
+            curIndex++;
+            curIndex %= BUFFERING_SIZE;
+            counter++;
+            queue[curIndex] = value;
         }
     }
     public int remove() {
         synchronized (queue) {
-            return queue.poll();
+            int prime = queue[prevIndex];
+            prevIndex++;
+            prevIndex %= BUFFERING_SIZE;
+            counter--;
+            return prime;
         }
     }
     boolean isFull(){
-        return queue.size() >= BUFFERING_SIZE;
+        return counter == BUFFERING_SIZE;
     }
     boolean isEmpty(){
-        return queue.size() == 0;
+        return counter == 0;
     }
     public void waitingFullState() throws InterruptedException {
         synchronized (FULL_STATE) {
@@ -113,56 +93,79 @@ class dataQueue {
             EMPTY_STATE.notify();
         }
     }
-    public boolean exist(){
-        if(!isEmpty() || lastPosition < primes.size()){
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
 }
 
 class Producer implements Runnable{
     private dataQueue data;
-    private volatile boolean isRunning;
     Producer(dataQueue d){
         data = d;
-        isRunning = true;
     }
     @Override
     public void run(){
         // call produce method
-        produce();
+        int primes = 0;
+        for (int number = 2; number <= data.N; number++) {
+            if(!MillerRabin(number))continue;
+            produce(number);
+            primes++;
+            data.maxPrime = number;
+        }
+        data.numOfPrimes = primes;
+        produce(-1);
     }
-    @Deprecated
-    public void stop() {
-        isRunning = false;
-        data.notifyEmptyState();
-    }
-    public void produce(){
-        while (isRunning) {
-            int prime = data.nextPrime();
-            if (prime == -1){
-                stop();
-                return;
-            }
-            while (data.isFull()) {
-                try {
-                    data.waitingFullState();
-                } catch (InterruptedException e) {
-                    break;
-                }
-            }
-            if (!isRunning) {
+    public void produce(int prime){
+        while (data.isFull()) {
+            try {
+                data.waitingFullState();
+            } catch (InterruptedException e) {
                 break;
             }
-            else {
-                data.add(prime);
-                data.notifyEmptyState();
-            }
         }
+        data.add(prime);
+        data.notifyEmptyState();
     }
+        long binpower(long base, long e, long mod) {
+            long result = 1;
+            base %= mod;
+            while (e > 0) {
+                if (e % 2 == 1)
+                    result = (long)result * base % mod;
+                base = (long)base * base % mod;
+                e >>= 1;
+            }
+            return result;
+        }
+
+        boolean check_composite(long n, long a, long d, long s) {
+            long x = binpower(a, d, n);
+            if (x == 1 || x == n - 1)
+                return false;
+            for (int r = 1; r < s; r++) {
+                x = (long)x * x % n;
+                if (x == n - 1)
+                    return false;
+            }
+            return true;
+        };
+        boolean MillerRabin(long n) { // returns true if n is prime, else returns false.
+            if (n < 2)
+                return false;
+
+            int r = 0;
+            long d = n - 1;
+            while ((d & 1) == 0) {
+                d >>= 1;
+                r++;
+            }
+
+            for (long a : new long []{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}) {
+                if (n == a)
+                    return true;
+                if (check_composite(n, a, d, r))
+                    return false;
+            }
+            return true;
+        }
 }
 
 class Consumer implements Runnable{
@@ -177,7 +180,7 @@ class Consumer implements Runnable{
         isRunning = true;
         counter = 0;
         try {
-            out = new FileWriter("C:\\Users\\DELL\\OneDrive\\Documents\\NetBeansProjects\\Assignment1OS\\src\\assignment1os\\"+outputFileName);
+            out = new FileWriter(outputFileName);
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -193,28 +196,13 @@ class Consumer implements Runnable{
         }
     }
 
-    @Deprecated
-
     public void stop() {
         isRunning = false;
         data.notifyEmptyState();
     }
     public void consume()throws IOException{
         while (isRunning){
-            try {
-                Thread.sleep(15);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            if(!data.exist()){
-                stop();
-                out.close();
-                return;
-            }
-            if(counter > 0)
-            {
-                out.write(", ");
-            }
+            
             if (data.isEmpty()) {
                 try {
                     data.waitEmptyState();
@@ -224,13 +212,22 @@ class Consumer implements Runnable{
             }
             
             int prime = data.remove();
+            if(prime == -1){
+                stop();
+                out.close();
+                return;     
+            }
+            if(counter > 0)
+            {
+                out.write(", ");
+            }
+            data.notifyFullState();
             try {
                 out.write("\""+Integer.toString(prime)+"\"");
                 counter++;
             } catch (IOException ex) {
                 Logger.getLogger(Consumer.class.getName()).log(Level.SEVERE, null, ex);
             }
-            data.notifyFullState();
         }
     }
 }
@@ -300,6 +297,22 @@ public class Home extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addGap(50, 50, 50)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel5)
+                    .addComponent(jLabel6)
+                    .addComponent(jLabel4))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 31, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(211, 211, 211))
+            .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(38, 38, 38)
@@ -313,27 +326,8 @@ public class Home extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel2)
-                            .addComponent(jLabel3)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(50, 50, 50)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel5)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel6)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 31, Short.MAX_VALUE)
-                                .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(151, 151, 151)))
-                .addGap(60, 60, 60))
+                            .addComponent(jLabel3))))
+                .addGap(37, 37, 37))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -371,7 +365,7 @@ public class Home extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        long start1 = System.nanoTime();
+        long start1 = System.currentTimeMillis();
         int N, BUFFERING_SIZE;
         String outputFileName;
         N = Integer.parseInt(jTextField2.getText());
@@ -379,7 +373,7 @@ public class Home extends javax.swing.JFrame {
         outputFileName = jTextField3.getText();
 
         dataQueue data = new dataQueue(N, BUFFERING_SIZE);
-        data.generatePrimes();
+       
         Producer producer = new Producer(data);
         Consumer consumer = null;
         try {
@@ -404,12 +398,10 @@ public class Home extends javax.swing.JFrame {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        long end1 = System.nanoTime();
         jLabel7.setText(Integer.toString(data.getMaxPrime()));
         jLabel8.setText(Integer.toString(data.getNumOfPrimes()));
-        jLabel9.setText(Long.toString(end1-start1)+" ns");
-     
-        
+        long end1 = System.currentTimeMillis();
+        jLabel9.setText(Long.toString(end1-start1)+ " ms");
 
 
     }//GEN-LAST:event_jButton1ActionPerformed

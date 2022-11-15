@@ -8,223 +8,8 @@
  * @author DELL
  */
 import java.io.*;
-import java.io.FileWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-
-
-
-class dataQueue {
-    private final int []queue;
-    private final Object FULL_STATE = new Object();
-    private final Object EMPTY_STATE = new Object();
-    public final int BUFFERING_SIZE, N;
-    public int lastPosition, numOfPrimes, maxPrime = -1;
-    private int curIndex, prevIndex, counter;
-
-    public dataQueue(int n, int bufferSize) {
-        N = n;
-        BUFFERING_SIZE = bufferSize;
-        queue = new int[BUFFERING_SIZE];
-        curIndex = -1;
-        prevIndex = 0;
-        counter = 0;
-    }
-
-    public int getMaxPrime()
-    {
-        return maxPrime;
-    }
-    public int getNumOfPrimes()
-    {
-        return numOfPrimes;
-    }
-    public int getLastPosition()
-    {
-        return lastPosition;
-    }
-    public void add(int value){
-        synchronized (queue){
-            curIndex++;
-            curIndex %= BUFFERING_SIZE;
-            counter++;
-            queue[curIndex] = value;
-        }
-    }
-    public int remove() {
-        synchronized (queue) {
-            int prime = queue[prevIndex];
-            prevIndex++;
-            prevIndex %= BUFFERING_SIZE;
-            counter--;
-            return prime;
-        }
-    }
-    boolean isFull(){
-        return counter == BUFFERING_SIZE;
-    }
-    boolean isEmpty(){
-        return counter == 0;
-    }
-    public void waitingFullState() throws InterruptedException {
-        synchronized (FULL_STATE) {
-            FULL_STATE.wait();
-        }
-    }
-    public void notifyFullState() {
-        synchronized (FULL_STATE) {
-            FULL_STATE.notifyAll();
-        }
-    }
-    public void waitEmptyState() throws InterruptedException {
-        synchronized (EMPTY_STATE) {
-            EMPTY_STATE.wait();
-        }
-    }
-    public void notifyEmptyState() {
-        synchronized (EMPTY_STATE) {
-            EMPTY_STATE.notify();
-        }
-    }
-}
-
-class Producer implements Runnable{
-    private dataQueue data;
-    Producer(dataQueue d){
-        data = d;
-    }
-    @Override
-    public void run(){
-        // call produce method
-        int primes = 0;
-        for (int number = 2; number <= data.N; number++) {
-            if(!MillerRabin(number))continue;
-            produce(number);
-            primes++;
-            data.maxPrime = number;
-        }
-        data.numOfPrimes = primes;
-        produce(-1);
-    }
-    public void produce(int prime){
-        while (data.isFull()) {
-            try {
-                data.waitingFullState();
-            } catch (InterruptedException e) {
-                break;
-            }
-        }
-        data.add(prime);
-        data.notifyEmptyState();
-    }
-    long binpower(long base, long e, long mod) {
-        long result = 1;
-        base %= mod;
-        while (e > 0) {
-            if (e % 2 == 1)
-                result = (long)result * base % mod;
-            base = (long)base * base % mod;
-            e >>= 1;
-        }
-        return result;
-    }
-
-    boolean check_composite(long n, long a, long d, long s) {
-        long x = binpower(a, d, n);
-        if (x == 1 || x == n - 1)
-            return false;
-        for (int r = 1; r < s; r++) {
-            x = (long)x * x % n;
-            if (x == n - 1)
-                return false;
-        }
-        return true;
-    };
-    boolean MillerRabin(long n) { // returns true if n is prime, else returns false.
-        if (n < 2)
-            return false;
-
-        int r = 0;
-        long d = n - 1;
-        while ((d & 1) == 0) {
-            d >>= 1;
-            r++;
-        }
-
-        for (long a : new long []{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}) {
-            if (n == a)
-                return true;
-            if (check_composite(n, a, d, r))
-                return false;
-        }
-        return true;
-    }
-}
-
-class Consumer implements Runnable{
-    dataQueue data;
-    FileWriter out;
-    static PrintWriter output;
-    private volatile boolean isRunning;
-    private int counter;
-
-    Consumer(dataQueue d, String outputFileName)throws IOException{
-        data = d;
-        isRunning = true;
-        counter = 0;
-        try {
-            out = new FileWriter(outputFileName);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void run(){
-        try {
-            // print file
-            consume();
-        } catch (IOException ex) {
-            Logger.getLogger(Consumer.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public void stop() {
-        isRunning = false;
-        data.notifyEmptyState();
-    }
-    public void consume()throws IOException{
-        while (isRunning){
-
-            if (data.isEmpty()) {
-                try {
-                    data.waitEmptyState();
-                } catch (InterruptedException e) {
-                    break;
-                }
-            }
-
-            int prime = data.remove();
-            if(prime == -1){
-                stop();
-                out.close();
-                return;
-            }
-            if(counter > 0)
-            {
-                out.write(", ");
-            }
-            data.notifyFullState();
-            try {
-                out.write("\""+Integer.toString(prime)+"\"");
-                counter++;
-            } catch (IOException ex) {
-                Logger.getLogger(Consumer.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-}
 
 class Home extends javax.swing.JFrame {
 
@@ -359,6 +144,10 @@ class Home extends javax.swing.JFrame {
     }// </editor-fold>
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+        // Taking input from user
+        // Given N, Buffering size and outputFile
+        // Find the primes from 1 to N (inclusive)
+
         long start1 = System.currentTimeMillis();
         int N, BUFFERING_SIZE;
         String outputFileName;
@@ -366,7 +155,10 @@ class Home extends javax.swing.JFrame {
         BUFFERING_SIZE = Integer.parseInt(jTextField1.getText());
         outputFileName = jTextField3.getText();
 
+
+        // data is the buffer for producer and consumer
         dataQueue data = new dataQueue(N, BUFFERING_SIZE);
+
 
         Producer producer = new Producer(data);
         Consumer consumer = null;
@@ -375,9 +167,14 @@ class Home extends javax.swing.JFrame {
         } catch (IOException ex) {
             Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+        // Create thread for producer
         Thread producerThread = new Thread(producer);
+
+        // Create thread for consumer
         Thread consumerThread = new Thread(consumer);
 
+        // Run threads
         producerThread.start();
         consumerThread.start();
 
@@ -392,11 +189,18 @@ class Home extends javax.swing.JFrame {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        // Assign labels in GUI
+
+        // Maximum Prime number
         jLabel7.setText(Integer.toString(data.getMaxPrime()));
+
+        // Number of primes
         jLabel8.setText(Integer.toString(data.getNumOfPrimes()));
+
+        // Time elapsed since the start of processing
         long end1 = System.currentTimeMillis();
         jLabel9.setText(Long.toString(end1-start1)+ " ms");
-
 
     }
 

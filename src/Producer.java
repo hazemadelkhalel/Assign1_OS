@@ -2,6 +2,8 @@ import java.io.FileNotFoundException;
 
 class Producer implements Runnable{
     private dataQueue data;
+    private boolean isRunning;
+
     Producer(dataQueue d){
         data = d;
     }
@@ -13,26 +15,16 @@ class Producer implements Runnable{
         // Iterating for every number from 2 to N
         for (int number = 2; number <= data.N; number++) {
             if(!MillerRabin(number))continue;
+            System.out.println("Produce number: " + number);
             produce(number);
             primes++;
-
             // Get maximum prime number
             data.maxPrime = number;
+
         }
-        data.numOfPrimes = primes;
-        Tester tester = new Tester(data.N, data.getMaxPrime(), data.getNumOfPrimes());
-        boolean result = false;
-        try {
-            result = tester.test();
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        if(result){
-            System.out.println("PASSED");
-        }
-        else{
-            System.out.println("WRONG");
-        }
+        isRunning = false;
+        data.setPrimes(primes);
+
         // Stopping the producer
         produce(-1);
     }
@@ -91,5 +83,9 @@ class Producer implements Runnable{
                 return false;
         }
         return true;
+    }
+
+    boolean getIsRunning(){
+        return this.isRunning;
     }
 }

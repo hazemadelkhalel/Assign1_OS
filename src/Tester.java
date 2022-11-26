@@ -44,7 +44,7 @@ public class Tester {
     }
     boolean test() throws FileNotFoundException {
 
-        File myObj = new File("D:\\\\Kollyyyyaaaaa\\\\Third Year\\\\OS\\\\Assignments\\\\Assign1_OS\\\\src\\\\primes.txt");
+        File myObj = new File("primes.txt");
         Scanner myReader = new Scanner(myObj);
         int n, max = 0, cnt = 0;
         while (true){
@@ -56,3 +56,4 @@ public class Tester {
         return max == this.mx && cnt == this.count;
     }
 }
+

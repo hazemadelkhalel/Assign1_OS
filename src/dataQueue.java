@@ -82,4 +82,8 @@ class dataQueue {
             EMPTY_STATE.notify();
         }
     }
+
+    void setPrimes(int primes) {
+        this.numOfPrimes = primes;
+    }
 }

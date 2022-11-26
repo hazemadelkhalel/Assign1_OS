@@ -145,19 +145,6 @@ class Home extends javax.swing.JFrame {
         pack();
     }// </editor-fold>
 
-    // Assign labels in GUI
-    void setLable1(String message){
-        // Maximum Prime number
-        jLabel7.setText(message);
-    }
-    void setLable2(String message){
-        // Number of primes
-        jLabel8.setText(message);
-    }
-    void setLable3(String message){
-        // Time elapsed since the start of processing
-        jLabel9.setText(message);
-    }
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         // Taking input from user
         // Given N, Buffering size and outputFile
@@ -182,6 +169,7 @@ class Home extends javax.swing.JFrame {
         } catch (IOException ex) {
             Logger.getLogger(Home.class.getName()).log(Level.SEVERE, null, ex);
         }
+        // Assign labels in GUI
 
         // Create thread for producer
         Thread producerThread = new Thread(producer);
@@ -204,6 +192,17 @@ class Home extends javax.swing.JFrame {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        // Assign labels in GUI
+        // Maximum Prime number
+        jLabel7.setText(Integer.toString(data.maxPrime));
+
+        // Number of primes
+        jLabel8.setText(Integer.toString(data.getNumOfPrimes()));
+
+        // Time elapsed since the start of processing
+        long end1 = System.currentTimeMillis();
+        jLabel9.setText(Long.toString(end1 - startTime)+ " ms");
 
 
     }

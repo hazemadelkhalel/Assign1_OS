@@ -62,9 +62,22 @@ class Consumer implements Runnable{
             if(prime == -1){
                 stop();
                 out.close();
+                Tester tester = new Tester(data.N, data.getMaxPrime(), data.getNumOfPrimes());
+                boolean result = false;
+                try {
+                    result = tester.test();
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+                if(result){
+                    System.out.println("PASSED\n");
+                }
+                else{
+                    System.out.println("WRONG\n");
+                }
                 return;
             }
-
+            System.out.println("Consume number: " + prime);
             if(counter > 0) out.write(", ");
             data.notifyFullState();
             try {

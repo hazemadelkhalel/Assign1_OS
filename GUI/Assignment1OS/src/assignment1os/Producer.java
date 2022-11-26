@@ -26,6 +26,7 @@ class Producer implements Runnable{
         // Iterating for every number from 2 to N
         for (int number = 2; number <= data.N; number++) {
             if(!MillerRabin(number))continue;
+            System.out.println("Produce number: " + number);
             produce(number);
             primes++;
             // Get maximum prime number
@@ -34,19 +35,7 @@ class Producer implements Runnable{
         }
         isRunning = false;
         data.setPrimes(primes);
-        Tester tester = new Tester(data.N, data.getMaxPrime(), data.getNumOfPrimes());
-        boolean result = false;
-        try {
-            result = tester.test();
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        if(result){
-            System.out.println("PASSED");
-        }
-        else{
-            System.out.println("WRONG");
-        }
+        
         // Stopping the producer
         produce(-1);
     }

@@ -1,7 +1,20 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package assignment1os;
+
+/**
+ *
+ * @author Hazem Adel
+ */
+
 import java.io.FileNotFoundException;
 
 class Producer implements Runnable{
     private dataQueue data;
+    private boolean isRunning;
+    
     Producer(dataQueue d){
         data = d;
     }
@@ -15,11 +28,12 @@ class Producer implements Runnable{
             if(!MillerRabin(number))continue;
             produce(number);
             primes++;
-
             // Get maximum prime number
             data.maxPrime = number;
+            
         }
-        data.numOfPrimes = primes;
+        isRunning = false;
+        data.setPrimes(primes);
         Tester tester = new Tester(data.N, data.getMaxPrime(), data.getNumOfPrimes());
         boolean result = false;
         try {
@@ -91,5 +105,9 @@ class Producer implements Runnable{
                 return false;
         }
         return true;
+    }
+    
+    boolean getIsRunning(){
+        return this.isRunning;
     }
 }

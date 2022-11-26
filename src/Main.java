@@ -7,6 +7,8 @@
  *
  * @author DELL
  */
+
+
 import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -143,12 +145,25 @@ class Home extends javax.swing.JFrame {
         pack();
     }// </editor-fold>
 
+    // Assign labels in GUI
+    void setLable1(String message){
+        // Maximum Prime number
+        jLabel7.setText(message);
+    }
+    void setLable2(String message){
+        // Number of primes
+        jLabel8.setText(message);
+    }
+    void setLable3(String message){
+        // Time elapsed since the start of processing
+        jLabel9.setText(message);
+    }
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
         // Taking input from user
         // Given N, Buffering size and outputFile
         // Find the primes from 1 to N (inclusive)
 
-        long start1 = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         int N, BUFFERING_SIZE;
         String outputFileName;
         N = Integer.parseInt(jTextField2.getText());
@@ -190,17 +205,6 @@ class Home extends javax.swing.JFrame {
             throw new RuntimeException(e);
         }
 
-        // Assign labels in GUI
-
-        // Maximum Prime number
-        jLabel7.setText(Integer.toString(data.getMaxPrime()));
-
-        // Number of primes
-        jLabel8.setText(Integer.toString(data.getNumOfPrimes()));
-
-        // Time elapsed since the start of processing
-        long end1 = System.currentTimeMillis();
-        jLabel9.setText(Long.toString(end1-start1)+ " ms");
 
     }
 

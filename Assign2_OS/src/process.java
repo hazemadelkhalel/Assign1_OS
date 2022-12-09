@@ -1,14 +1,14 @@
 import java.util.Comparator;
 
 class ProcessComparator implements Comparator<process> {
-    public int compare(process s1, process s2) {
-        if (s1.burstTime > s2.burstTime)
+    public int compare(process p1, process p2) {
+        if (p1.burstTime > p2.burstTime)
             return 1;
-        else if (s1.burstTime == s2.burstTime){
-            if(s1.arrivalTime > s2.arrivalTime){
+        else if (p1.burstTime == p2.burstTime){
+            if(p1.arrivalTime > p2.arrivalTime){
                 return 1;
             }
-            else if(s1.arrivalTime < s2.arrivalTime){
+            else if(p1.arrivalTime < p2.arrivalTime){
                 return -1;
             }
         }
@@ -16,6 +16,37 @@ class ProcessComparator implements Comparator<process> {
             return -1;
         }
         return 0;
+    }
+}
+
+class ProcessComparator2 implements Comparator<process> {
+    @Override
+    public int compare(process p1, process p2) {
+        if(p1.priority > p2.priority){
+            return 1;
+        }
+        else if(p1.priority == p2.priority){
+            if(p1.burstTime > p2.burstTime){
+                return 1;
+            }
+            else if(p1.burstTime == p2.burstTime){
+                if(p1.arrivalTime > p2.arrivalTime){
+                    return 1;
+                }
+                else if(p1.arrivalTime == p2.arrivalTime){
+                    return 0;
+                }
+                else{
+                    return -1;
+                }
+            }
+            else{
+                return -1;
+            }
+        }
+        else{
+            return -1;
+        }
     }
 }
 public class process {

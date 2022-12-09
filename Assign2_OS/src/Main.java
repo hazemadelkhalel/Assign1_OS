@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
 
@@ -12,15 +9,15 @@ public class Main {
         System.out.println("3- Priority Scheduling");
         System.out.println("4- AG Scheduling");
         int type = input.nextInt();
+        System.out.print("Enter the number of processes : ");
+        int processesNumber;
+        processesNumber = input.nextInt();
+        System.out.println("Enter the data for each process");
+        ArrayList<process> processesList = new ArrayList<>();
         if(type == 1){
-            int processesNumber;
-            System.out.print("Enter the number of processes : ");
-            processesNumber = input.nextInt();
-            ArrayList<process> processesList = new ArrayList<>(processesNumber);
             for (int i = 0; i < processesNumber; i++) {
                 String processName;
-                int burstTime, arrivalTime, priority;
-                System.out.println("Enter the data for each process");
+                int burstTime, arrivalTime;
                 System.out.print("Enter the name : ");
                 processName = input.next();
                 System.out.print("Enter the arrival time : ");
@@ -38,7 +35,22 @@ public class Main {
 
         }
         else if (type == 3){
-
+            for (int i = 0; i < processesNumber; i++) {
+                String processName;
+                int burstTime, arrivalTime, priority;
+                System.out.print("Enter the name : ");
+                processName = input.next();
+                System.out.print("Enter the arrival time : ");
+                arrivalTime = input.nextInt();
+                System.out.print("Enter the burst time : ");
+                burstTime = input.nextInt();
+                System.out.print("Enter the priority time : ");
+                priority = input.nextInt();
+                process process = new process(processName, arrivalTime, burstTime, priority);
+                processesList.add(process);
+            }
+            priorityScheduling priorityScheduling = new priorityScheduling(processesList);
+            priorityScheduling.priorityScheduling();
         }
         else{
 
@@ -50,6 +62,27 @@ public class Main {
 
 
     }
-
+//3
+//5
+//p1
+//0
+//8
+//3
+//p2
+//1
+//1
+//1
+//p3
+//2
+//3
+//2
+//p4
+//3
+//2
+//3
+//p5
+//4
+//6
+//4
 
 }

@@ -33,6 +33,26 @@ public class Main {
         }
         else if(type == 2){
 
+            System.out.println("Enter Quantum :");
+            int quantum = input.nextInt();
+
+            ////////////
+            for (int i = 0; i < processesNumber; i++) {
+                String processName;
+                int burstTime, arrivalTime;
+//                System.out.print("Enter the name : ");
+                processName = input.next();
+//                System.out.print("Enter the arrival time : ");
+                arrivalTime = input.nextInt();
+//                System.out.print("Enter the burst time : ");
+                burstTime = input.nextInt();
+                process process = new process(processName, arrivalTime, burstTime);
+                processesList.add(process);
+
+            }
+            RoundRobin roundRobin = new RoundRobin(processesList);
+            roundRobin.roundRobin(quantum);
+
         }
         else if (type == 3){
             for (int i = 0; i < processesNumber; i++) {
@@ -84,5 +104,37 @@ public class Main {
 //4
 //6
 //4
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+processes: 5
+quantum
+3
+p1
+0
+4
+p2
+1
+8
+p3
+3
+2
+p4
+10
+6
+p5
+12
+5
+*/
 
 }

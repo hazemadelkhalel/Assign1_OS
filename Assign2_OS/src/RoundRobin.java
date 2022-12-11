@@ -2,7 +2,7 @@ import java.util.*;
 
 public class RoundRobin {
 
-    //    public ArrayList<process> processesList;
+    ArrayList<process> processesList;
     ArrayList<Integer> arrivalTime;
     //    PriorityQueue<process> sortedProcess;
     HashMap<Integer, ArrayList<process>> compressedProcess;
@@ -11,7 +11,7 @@ public class RoundRobin {
 
 
     RoundRobin(ArrayList<process> processesList) {
-//        this.processesList = processesList;
+        this.processesList = processesList;
         arrivalTime = new ArrayList<>();
         Sequence = new ArrayList<>();
 //        sortedProcess = new PriorityQueue<process>(processesList.size(), new ProcessComparator());
@@ -27,12 +27,11 @@ public class RoundRobin {
         for(Map.Entry<Integer, ArrayList<process>> entry: compressedProcess.entrySet()){
             arrivalTime.add(entry.getKey());
         }
-        arrivalTime.add(1000000000);
         Collections.sort(arrivalTime);
     }
 
 
-    public void roundRobin(int quantum)
+    public void roundRobin(int quantum, int context)
     {
         Queue<process>WaitingProcesses = new LinkedList<process>();
         Queue<process>ArrivedProcesses = new LinkedList<process>(); //who came
@@ -40,77 +39,142 @@ public class RoundRobin {
         int currentTime = arrivalTime.get(0);
         ArrayList<process> processList = compressedProcess.get(currentTime);
         int contextSwitching = 0;
-        boolean which_arrived=true; //who came
         boolean waiting = false;
         int i=1;
-        while( ! processList.isEmpty() ) //veryyyy big loop
+        int lastTime = 0;
+        System.out.println("Order of Execution:");
+        while( ! processList.isEmpty() || !WaitingProcesses.isEmpty()) //veryyyy big loop
         {
             for(int j=0 ; j<processList.size() ; j++)
             {
                 //check if its execution time is greater than quantum or not
+                boolean ok = false;
                 if( processList.get(j).burstTime != 0 )
                 {
-                    if(processList.get(j).burstTime <= quantum)
-                    {
+                    ok = true;
+                    if(processList.get(j).burstTime <= quantum) {
+
+
                         currentTime += processList.get(j).burstTime;
-                        currentTime++; //for the contexttt
+                        currentTime += context; //for the contexttt
                         processList.get(j).burstTime = 0;
 
+                        processList.get(j).completeTime = currentTime;
+                        processList.get(j).waitingTime = processList.get(j).completeTime - processList.get(j).arrivalTime - processList.get(j).originalExecution;
+                        processList.get(j).turnAroundTime = processList.get(j).completeTime - processList.get(j).arrivalTime;
+                        System.out.println("Process " + processList.get(j).processName + ": " + lastTime + " to " + currentTime);
+                        System.out.println("Context Switch from " + currentTime + " to " + (currentTime + context));
+                        for(int k = 0; k < processesList.size();k++){
+                            if(processesList.get(k).processName.equals(processList.get(j).processName)){
+                                processesList.set(k, processList.get(j));
+                                break;
+                            }
+                        }
+
                     }
-                    else if(processList.get(j).burstTime > quantum){
+                    else{
                         currentTime += quantum;
-                        currentTime++; //for the contexttt
+                        currentTime += context; //for the contexttt
                         processList.get(j).burstTime -= quantum;
                         WaitingProcesses.add(processList.get(j));
+
+                        processList.get(j).completeTime = currentTime;
+                        processList.get(j).waitingTime = processList.get(j).completeTime - processList.get(j).arrivalTime - processList.get(j).originalExecution;
+                        processList.get(j).turnAroundTime = processList.get(j).completeTime - processList.get(j).arrivalTime;
+                        System.out.println("Process " + processList.get(j).processName + ": " + lastTime + " to " + currentTime);
+                        System.out.println("Context Switch from " + currentTime + " to " + (currentTime + context));
+                        for(int k = 0; k < processesList.size();k++){
+                            if(processesList.get(k).processName.equals(processList.get(j).processName)){
+                                processesList.set(k, processList.get(j));
+                                break;
+                            }
+                        }
+                    }
+                    lastTime = currentTime;
+                }
+                if(processList.size() == 1 && WaitingProcesses.size() == 0 && !ok){
+                    currentTime += context;
+                    processList.get(j).completeTime = currentTime;
+                    processList.get(j).waitingTime = processList.get(j).completeTime - processList.get(j).arrivalTime - processList.get(j).originalExecution;
+                    processList.get(j).turnAroundTime = processList.get(j).completeTime - processList.get(j).arrivalTime;
+                    System.out.println("Process " + processList.get(j).processName + ": " + lastTime + " to " + currentTime);
+                    System.out.println("Context Switch from " + currentTime + " to " + (currentTime + context));
+                    for(int k = 0; k < processesList.size();k++){
+                        if(processesList.get(k).processName.equals(processList.get(j).processName)){
+                            processesList.set(k, processList.get(j));
+                            break;
+                        }
                     }
                 }
                 Sequence.add(processList.get(j).processName);
-                process pp = processList.remove(j);
+                processList.remove(j);
                 j--;
             }
-            if(which_arrived==true)
-            {
-                while (arrivalTime.get(i) <= currentTime && arrivalTime.get(i)!=1000000000) //to see who came
-                {
+            if(!waiting) {
+                waiting=true;
+
+                //to see who came
+                while (i < arrivalTime.size() && arrivalTime.get(i) <= currentTime) {
                     ArrayList<process> p = compressedProcess.get(arrivalTime.get(i));
-                    for(int k=0 ; k<p.size() ; k++)
-                    {
-                        processList.add(p.get(k));
-                    }
+                    processList.addAll(p);
                     i++;
                 }
-                which_arrived=false;
-                waiting=true;
-                continue;
-
             }
-            else if(waiting == true)
-            {
-                while( !WaitingProcesses.isEmpty() )
-                {
-                    process head = WaitingProcesses.peek();
+            else{
+                while( !WaitingProcesses.isEmpty() ) {
+                    process head = WaitingProcesses.poll();
                     processList.add(head);
-                    WaitingProcesses.poll();
                 }
-                waiting=false;
-                which_arrived = true;
+                waiting= false;
             }
 
         }
-        System.out.println("Current time(Finished at time) in RR : " + currentTime);
-
-    }
-
-    public void printProcessesSequence()
-    {
-        System.out.print("The Sequence: ");
-        for(int i=0 ; i<Sequence.size() ; i++)
-        {
-            System.out.print(Sequence.get(i) + "  ");
+        System.out.println("\n Answer: ");
+        int sumTurnAroundTime = 0, sumWaitingTime = 0;
+        for(int j = 0; j < processesList.size(); j++){
+            System.out.println("Process Name: " + processesList.get(j).processName);
+            System.out.println("Waiting Time: " + processesList.get(j).waitingTime);
+            System.out.println("Turnaround Time: " + processesList.get(j).turnAroundTime);
+            sumWaitingTime += processesList.get(j).waitingTime;
+            sumTurnAroundTime += processesList.get(j).turnAroundTime;
+            System.out.println();
         }
-        System.out.println();
+        double averageTurnAroundTime = (double) sumTurnAroundTime / processesList.size();
+        double averageWaitingTime = (double) sumWaitingTime / processesList.size();
+        System.out.println("Current time(Finished at time) in RR : " + currentTime);
+        System.out.println("Average Waiting Time: " + averageWaitingTime);
+        System.out.println("Average Turn Around Time: " + averageTurnAroundTime);
     }
-
-
 
 }
+
+//2
+//5
+//3
+//1
+//p1
+//0
+//4
+//p2
+//1
+//8
+//p3
+//3
+//2
+//p4
+//10
+//6
+//p5
+//12
+//5
+
+
+
+
+//2
+//    1
+//    2
+//    1
+//    p1
+//    0
+//    20

@@ -26,14 +26,14 @@ class ProcessComparator2 implements Comparator<process> {
             return 1;
         }
         else if(p1.priority == p2.priority){
-            if(p1.burstTime > p2.burstTime){
+            if(p1.arrivalTime > p2.arrivalTime){
                 return 1;
             }
-            else if(p1.burstTime == p2.burstTime){
-                if(p1.arrivalTime > p2.arrivalTime){
+            else if(p1.arrivalTime == p2.arrivalTime){
+                if(p1.burstTime > p2.burstTime){
                     return 1;
                 }
-                else if(p1.arrivalTime == p2.arrivalTime){
+                else if(p1.burstTime == p2.burstTime){
                     return 0;
                 }
                 else{
@@ -51,17 +51,15 @@ class ProcessComparator2 implements Comparator<process> {
 }
 public class process {
     String processName;
-    int burstTime;
-    int arrivalTime;
-    int priority;
-    int quantum;
-    int quarterQuantum;
+    int burstTime, arrivalTime, priority, quantum, quarterQuantum, completeTime;
+    int waitingTime, turnAroundTime, originalExecution;
 
     process(String processName , int arrivalTime , int burstTime)
     {
         this.processName = processName;
         this.burstTime = burstTime;
         this.arrivalTime = arrivalTime;
+        this.originalExecution = burstTime;
     }
     process(String processName , int arrivalTime , int burstTime, int priority)
     {
@@ -69,6 +67,8 @@ public class process {
         this.burstTime = burstTime;
         this.arrivalTime = arrivalTime;
         this.priority = priority;
+        this.originalExecution = burstTime;
+
     }
     process(String processName , int arrivalTime , int burstTime, int priority, int quantum)
     {
@@ -78,5 +78,6 @@ public class process {
         this.priority = priority;
         this.quantum = quantum;
         quarterQuantum = (quantum + 3)/4;
+        this.originalExecution = burstTime;
     }
 }

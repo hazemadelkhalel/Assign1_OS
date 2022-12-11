@@ -7,13 +7,13 @@ public class RoundRobin {
     //    PriorityQueue<process> sortedProcess;
     HashMap<Integer, ArrayList<process>> compressedProcess;
 
-
+    ArrayList<String>Sequence;
 
 
     RoundRobin(ArrayList<process> processesList) {
 //        this.processesList = processesList;
         arrivalTime = new ArrayList<>();
-
+        Sequence = new ArrayList<>();
 //        sortedProcess = new PriorityQueue<process>(processesList.size(), new ProcessComparator());
         compressedProcess = new HashMap<>();
         //fill the map
@@ -34,7 +34,7 @@ public class RoundRobin {
 
     public void roundRobin(int quantum)
     {
-        Queue<process> WaitingProcesses = new LinkedList<process>();
+        Queue<process>WaitingProcesses = new LinkedList<process>();
         Queue<process>ArrivedProcesses = new LinkedList<process>(); //who came
 //        int current_time=0;
         int currentTime = arrivalTime.get(0);
@@ -47,7 +47,6 @@ public class RoundRobin {
         {
             for(int j=0 ; j<processList.size() ; j++)
             {
-                System.out.println("The process now is : " + processList.get(j).processName);
                 //check if its execution time is greater than quantum or not
                 if( processList.get(j).burstTime != 0 )
                 {
@@ -65,12 +64,13 @@ public class RoundRobin {
                         WaitingProcesses.add(processList.get(j));
                     }
                 }
-
-                processList.remove(j);
+                Sequence.add(processList.get(j).processName);
+                process pp = processList.remove(j);
+                j--;
             }
             if(which_arrived==true)
             {
-                while (arrivalTime.get(i) <= currentTime && i<arrivalTime.size()) //to see who came
+                while (arrivalTime.get(i) <= currentTime && arrivalTime.get(i)!=1000000000) //to see who came
                 {
                     ArrayList<process> p = compressedProcess.get(arrivalTime.get(i));
                     for(int k=0 ; k<p.size() ; k++)
@@ -97,10 +97,20 @@ public class RoundRobin {
             }
 
         }
-        System.out.println("Current in RR : " + currentTime);
+        System.out.println("Current time(Finished at time) in RR : " + currentTime);
 
     }
 
+    public void printProcessesSequence()
+    {
+        System.out.print("The Sequence: ");
+        for(int i=0 ; i<Sequence.size() ; i++)
+        {
+            System.out.print(Sequence.get(i) + "  ");
+        }
+        System.out.println();
+    }
+
+
 
 }
-

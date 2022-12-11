@@ -4,15 +4,15 @@ public class Main {
 
     public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
-        System.out.println("1- SJF");
-        System.out.println("2- Round Robin");
-        System.out.println("3- Priority Scheduling");
-        System.out.println("4- AG Scheduling");
+//        System.out.println("1- SJF");
+//        System.out.println("2- Round Robin");
+//        System.out.println("3- Priority Scheduling");
+//        System.out.println("4- AG Scheduling");
         int type = input.nextInt();
-        System.out.print("Enter the number of processes : ");
+//        System.out.print("Enter the number of processes : ");
         int processesNumber;
         processesNumber = input.nextInt();
-        System.out.println("Enter the data for each process");
+//        System.out.println("Enter the data for each process");
         ArrayList<process> processesList = new ArrayList<>();
         if(type == 1){
             for (int i = 0; i < processesNumber; i++) {
@@ -73,7 +73,24 @@ public class Main {
             priorityScheduling.priorityScheduling();
         }
         else{
-
+            for (int i = 0; i < processesNumber; i++) {
+                String processName;
+                int burstTime, arrivalTime, priority, quantum;
+//                System.out.print("Enter the name : ");
+                processName = input.next();
+//                System.out.print("Enter the arrival time : ");
+                arrivalTime = input.nextInt();
+//                System.out.print("Enter the burst time : ");
+                burstTime = input.nextInt();
+//                System.out.print("Enter the priority time : ");
+                priority = input.nextInt();
+//                System.out.print("Enter the Quantum time : ");
+                quantum = input.nextInt();
+                process process = new process(processName, arrivalTime, burstTime, priority, quantum);
+                processesList.add(process);
+            }
+            AGScheduling agScheduling = new AGScheduling(processesList);
+            agScheduling.AGSchedulingProcessing();
         }
 //        for(int i=0 ; i<processesList.size() ; i++)
 //        {
@@ -138,3 +155,28 @@ p5
 */
 
 }
+
+
+
+//4
+//4
+//p1
+//0
+//17
+//4
+//7
+//p2
+//2
+//6
+//7
+//9
+//p3
+//5
+//11
+//3
+//4
+//p4
+//15
+//4
+//6
+//6

@@ -54,6 +54,8 @@ public class process {
     int burstTime;
     int arrivalTime;
     int priority;
+    int quantum;
+    int quarterQuantum;
 
     process(String processName , int arrivalTime , int burstTime)
     {
@@ -67,5 +69,14 @@ public class process {
         this.burstTime = burstTime;
         this.arrivalTime = arrivalTime;
         this.priority = priority;
+    }
+    process(String processName , int arrivalTime , int burstTime, int priority, int quantum)
+    {
+        this.processName = processName;
+        this.burstTime = burstTime;
+        this.arrivalTime = arrivalTime;
+        this.priority = priority;
+        this.quantum = quantum;
+        quarterQuantum = (quantum + 3)/4;
     }
 }

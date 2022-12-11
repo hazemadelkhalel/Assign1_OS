@@ -74,15 +74,15 @@ public class RoundRobin {
                     }
                     else{
                         currentTime += quantum;
-                        currentTime += context; //for the contexttt
                         processList.get(j).burstTime -= quantum;
                         WaitingProcesses.add(processList.get(j));
+                        System.out.println("Process " + processList.get(j).processName + ": " + lastTime + " to " + currentTime);
+                        System.out.println("Context Switch from " + currentTime + " to " + (currentTime + context));
 
+                        currentTime += context; //for the contexttt
                         processList.get(j).completeTime = currentTime;
                         processList.get(j).waitingTime = processList.get(j).completeTime - processList.get(j).arrivalTime - processList.get(j).originalExecution;
                         processList.get(j).turnAroundTime = processList.get(j).completeTime - processList.get(j).arrivalTime;
-                        System.out.println("Process " + processList.get(j).processName + ": " + lastTime + " to " + currentTime);
-                        System.out.println("Context Switch from " + currentTime + " to " + (currentTime + context));
                         for(int k = 0; k < processesList.size();k++){
                             if(processesList.get(k).processName.equals(processList.get(j).processName)){
                                 processesList.set(k, processList.get(j));
@@ -93,12 +93,12 @@ public class RoundRobin {
                     lastTime = currentTime;
                 }
                 if(processList.size() == 1 && WaitingProcesses.size() == 0 && !ok){
+                    System.out.println("Process " + processList.get(j).processName + ": " + lastTime + " to " + currentTime);
+                    System.out.println("Context Switch from " + currentTime + " to " + (currentTime + context));
                     currentTime += context;
                     processList.get(j).completeTime = currentTime;
                     processList.get(j).waitingTime = processList.get(j).completeTime - processList.get(j).arrivalTime - processList.get(j).originalExecution;
                     processList.get(j).turnAroundTime = processList.get(j).completeTime - processList.get(j).arrivalTime;
-                    System.out.println("Process " + processList.get(j).processName + ": " + lastTime + " to " + currentTime);
-                    System.out.println("Context Switch from " + currentTime + " to " + (currentTime + context));
                     for(int k = 0; k < processesList.size();k++){
                         if(processesList.get(k).processName.equals(processList.get(j).processName)){
                             processesList.set(k, processList.get(j));
@@ -155,18 +155,23 @@ public class RoundRobin {
 //p1
 //0
 //4
+//1
 //p2
 //1
 //8
+//1
 //p3
 //3
 //2
+//1
 //p4
 //10
 //6
+//1
 //p5
 //12
 //5
+//1
 
 
 

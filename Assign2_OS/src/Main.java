@@ -19,14 +19,16 @@ public class Main {
             int context = input.nextInt();
             for (int i = 0; i < processesNumber; i++) {
                 String processName;
-                int burstTime, arrivalTime;
+                int burstTime, arrivalTime, priority;
                 System.out.print("Enter the name : ");
                 processName = input.next();
                 System.out.print("Enter the arrival time : ");
                 arrivalTime = input.nextInt();
                 System.out.print("Enter the burst time : ");
                 burstTime = input.nextInt();
-                process process = new process(processName, arrivalTime, burstTime);
+                System.out.print("Enter the priority : ");
+                priority = input.nextInt();
+                process process = new process(processName, arrivalTime, burstTime, priority);
                 processesList.add(process);
 
             }
@@ -44,14 +46,16 @@ public class Main {
             ////////////
             for (int i = 0; i < processesNumber; i++) {
                 String processName;
-                int burstTime, arrivalTime;
+                int burstTime, arrivalTime, priority;
                 System.out.print("Enter the name : ");
                 processName = input.next();
                 System.out.print("Enter the arrival time : ");
                 arrivalTime = input.nextInt();
                 System.out.print("Enter the burst time : ");
                 burstTime = input.nextInt();
-                process process = new process(processName, arrivalTime, burstTime);
+                System.out.print("Enter the priority : ");
+                priority = input.nextInt();
+                process process = new process(processName, arrivalTime, burstTime, priority);
                 processesList.add(process);
 
             }

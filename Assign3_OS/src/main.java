@@ -52,16 +52,47 @@ public class main {
         selection = sc.nextInt();
         if(selection==1) //First Fit
         {
-            FirstFit firstFit = new FirstFit();
-            firstFit.firstFit(partitions , processes);
+            FirstFit firstFit = new FirstFit(partitions, processes);
+            firstFit.firstFit();
+            firstFit.print();
+            System.out.println('\n');
+            System.out.println("Do you want to compact");
+            System.out.println("1) YES");
+            System.out.println("2) NO");
+            int compact = sc.nextInt();
+            if(compact == 1){
+                firstFit.compact();
+                firstFit.print();
+            }
         }
         else if (selection == 2){
-            WorstFit worstFit = new WorstFit();
-            worstFit.worstFit(partitions , processes);
+            WorstFit worstFit = new WorstFit(partitions, processes);
+            worstFit.worstFit();
+            worstFit.print();
+            System.out.println("Do you want to compact");
+            System.out.println("1) YES");
+            System.out.println("2) NO");
+            System.out.println('\n');
+            int compact = sc.nextInt();
+            if(compact == 1){
+                worstFit.compact();
+                worstFit.print();
+            }
+//            worstFit.worstFit(partitions , processes, false);
         }
         else if(selection == 3){
-            BestFit bestFit = new BestFit();
-            bestFit.bestFit(partitions , processes);
+            BestFit bestFit = new BestFit(partitions, processes);
+            bestFit.bestFit();
+            bestFit.print();
+            System.out.println('\n');
+            System.out.println("Do you want to compact");
+            System.out.println("1) YES");
+            System.out.println("2) NO");
+            int compact = sc.nextInt();
+            if(compact == 1){
+                bestFit.compact();
+                bestFit.print();
+            }
         }
     }
 }
@@ -80,4 +111,5 @@ Process-2 90
 Process-3 30
 Process-4 100
 3
+1
  */

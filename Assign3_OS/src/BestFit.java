@@ -3,13 +3,71 @@ import java.util.HashMap;
 
 public class BestFit {
     //    ArrayList<String>allocation; //hold process names that are allocated
-    HashMap<Pair , String> allocation;
-    BestFit(){
-        allocation = new HashMap<>();
-    }
-    void bestFit(ArrayList<Pair> partitions , ArrayList<Pair> processes){
 
-        int lastName = partitions.size();
+    HashMap<Pair, String> allocation;
+    ArrayList<Boolean> isAllocated;
+    ArrayList<Pair> externalIndices;
+    ArrayList<Pair> partitions, processes;
+
+    int lastName;
+
+    BestFit(ArrayList<Pair> partitions, ArrayList<Pair> processes) {
+        this.partitions = partitions;
+        this.processes = processes;
+        allocation = new HashMap<>();
+        isAllocated = new ArrayList<>();
+        for(int i = 0; i < processes.size(); i++) isAllocated.add(false);
+        externalIndices = new ArrayList<>();
+        lastName = partitions.size();
+    }
+    void compact(){
+        Pair externalPartition = new Pair();
+        externalPartition.name = "Partition-" + lastName;
+        externalPartition.size = 0;
+        ArrayList<Pair> externalIndices = new ArrayList<>();
+        for (int i = 0; i < partitions.size(); i++){
+            if(allocation.containsKey(partitions.get(i)))continue;
+            externalIndices.add(partitions.get(i));
+            externalPartition.size += partitions.get(i).size;
+        }
+        for(int i = 0; i < externalIndices.size(); i++){
+            partitions.remove(externalIndices.get(i));
+        }
+        for (int i = 0; i < processes.size(); i++) {
+            if (isAllocated.get(i)) continue;
+            if(processes.get(i).size > externalPartition.size)continue;
+            externalPartition.size -= processes.get(i).size;
+            String processName = processes.get(i).name;
+            int processSize = processes.get(i).size;
+            Pair partition = new Pair();
+            partition.name = "Partition-" + lastName++;
+            partition.size = processSize;
+            partitions.add(partition);
+            allocation.put(partition, processName);
+            isAllocated.set(i, true);
+        }
+        if(externalPartition.size > 0){
+            externalPartition.name = "Partition-" + lastName++;
+            partitions.add(externalPartition);
+        }
+    }
+    void print(){
+        //printing
+        for(int i=0 ; i<partitions.size() ; i++){
+            if (allocation.containsKey(partitions.get(i))) //process inside
+                System.out.println(partitions.get(i).name + " (" + partitions.get(i).size + " KB) => " + allocation.get( partitions.get(i) )  );
+            else{
+                System.out.println(partitions.get(i).name + " ("+ partitions.get(i).size + " KB) => External Fragment");
+            }
+        }
+        System.out.println();
+        for(int i=0 ;i<processes.size() ; i++){
+            if(!isAllocated.get(i)){
+                System.out.println(processes.get(i).name + " can not be allocated.");
+            }
+        }
+    }
+    void bestFit(){
         for(int i = 0; i < processes.size(); i++){
             String processName = processes.get(i).name;
             int processSize = processes.get(i).size;
@@ -23,10 +81,10 @@ public class BestFit {
             }
             //can not be allocated
             if(minSuitablePartition == null){
-                processes.get(i).size = -1;
                 continue;
             }
             allocation.put(partitions.get(indexMinPartition), processName);
+            isAllocated.set(i, true);
             int remain = partitions.get(indexMinPartition).size - processSize;
             partitions.get(indexMinPartition).size = processSize;
             if(remain == 0)continue;
@@ -35,21 +93,5 @@ public class BestFit {
             partition.size = remain;
             partitions.add(indexMinPartition + 1, partition);
         }
-
-        //printing
-        for(int i=0 ; i<partitions.size() ; i++){
-            if (allocation.containsKey(partitions.get(i))) //process inside
-                System.out.println(partitions.get(i).name + " (" + partitions.get(i).size + " KB) => " + allocation.get( partitions.get(i) )  );
-            else{
-                System.out.println(partitions.get(i).name + " ("+ partitions.get(i).size + " KB) => External Fragment");
-            }
-        }
-        System.out.println();
-        for(int i=0 ;i<processes.size() ; i++){
-            if(processes.get(i).size == -1){
-                System.out.println(processes.get(i).name + " can not be allocated.");
-            }
-        }
-
     }
 }

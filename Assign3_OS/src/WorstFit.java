@@ -8,50 +8,36 @@ public class WorstFit {
         allocation = new HashMap<>();
     }
     void worstFit(ArrayList<Pair> partitions , ArrayList<Pair> processes){
-        int lastIndex = partitions.size();
-        for(int i=0 ; i<partitions.size() ; i++){
-            allocation.put(partitions.get(i) , "");
-        }
-        for(int i=0 ; i<processes.size() ; i++){
-            Pair maxSuitablePartition = new Pair();
-            maxSuitablePartition.size = 0;
-            int indexMaxPartition=0;
+        int lastName = partitions.size();
+        for(int i = 0; i < processes.size(); i++){
             String processName = processes.get(i).name;
             int processSize = processes.get(i).size;
-            int j;
-            for(j=0 ; j<partitions.size() ; j++){
-                if(j == partitions.size()-1 && processSize>partitions.get(j).size){
-                    processes.get(i).size = -1; //can not be allocated
-                }
-                else if(partitions.get(j).size >= processSize && partitions.get(j).size > maxSuitablePartition.size && allocation.get( partitions.get(j) ) == "" ){
-                    maxSuitablePartition = partitions.get(j);
-                    indexMaxPartition = j;
-                }
+            Pair maxSuitablePartition = null;
+            int indexMaxPartition = -1;
+            for(int j = 0; j < partitions.size(); j++){
+                if (allocation.containsKey(partitions.get(j)) || processSize > partitions.get(j).size)continue;
+                if(maxSuitablePartition != null && partitions.get(j).size <= maxSuitablePartition.size)continue;
+                maxSuitablePartition = partitions.get(j);
+                indexMaxPartition = j;
             }
-            if(maxSuitablePartition.size == processSize){
-                allocation.put(partitions.get(indexMaxPartition) , processName);
-                processes.get(i).size = 1; // indication that process is allocated
+            //can not be allocated
+            if(maxSuitablePartition == null){
+                processes.get(i).size = -1;
+                continue;
             }
-            else if(maxSuitablePartition.size > processSize){
-                int remain = partitions.get(indexMaxPartition).size - processSize;
-                partitions.get(indexMaxPartition).size = processSize;
-//                    allocation.add(j , processName);
-                allocation.put(partitions.get(indexMaxPartition) , processName);
-                //make a new partition
-                Pair partition = new Pair();
-                partition.name = "partition"+lastIndex;
-                partition.size = remain;
-                lastIndex++; //3shan ely gyy b3d kda
-                partitions.add(indexMaxPartition+1 , partition);
-                allocation.put(partition , "");
-                processes.get(i).size = 1; // indication that process is allocated
-            }
-
+            allocation.put(partitions.get(indexMaxPartition), processName);
+            int remain = partitions.get(indexMaxPartition).size - processSize;
+            partitions.get(indexMaxPartition).size = processSize;
+            if(remain == 0)continue;
+            Pair partition = new Pair();
+            partition.name = "Partition-" + lastName++;
+            partition.size = remain;
+            partitions.add(indexMaxPartition + 1, partition);
         }
 
         //printing
         for(int i=0 ; i<partitions.size() ; i++){
-            if( allocation.get( partitions.get(i) )  != "")
+            if (allocation.containsKey(partitions.get(i))) //process inside
                 System.out.println(partitions.get(i).name + '(' + partitions.get(i).size + " KB) => " + allocation.get( partitions.get(i) )  );
             else{
                 System.out.println(partitions.get(i).name + '(' + partitions.get(i).size + " KB) => External Fragment");

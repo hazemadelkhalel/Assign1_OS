@@ -5,6 +5,11 @@ import java.util.Scanner;
 class Pair{
     String name;
     int size;
+    Pair(){}
+    Pair(String name, int size){
+        this.name = name;
+        this.size = size;
+    }
 }
 
 public class main {
@@ -63,15 +68,16 @@ public class main {
 
 /*
 6
-partition0 90
-partition1 20
-partition2 5
-partition3 30
-partition4 120
-partition5 80
+Partition-0 90
+Partition-1 20
+Partition-2 5
+Partition-3 30
+Partition-4 120
+Partition-5 80
 4
-process1 15
-process2 90
-process3 30
-process4 100
+Process-1 15
+Process-2 90
+Process-3 30
+Process-4 100
+3
  */

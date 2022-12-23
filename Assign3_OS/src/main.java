@@ -17,30 +17,34 @@ public class main {
         ArrayList<Pair>partitions=new ArrayList<>();
         ArrayList<Pair>processes=new ArrayList<>();
         //Fill Partitions
-//        System.out.println("Enter number of partitions:");
+        System.out.println("Enter number of partitions:");
         int partitionNumber , partitionSize;
         String partitionName;
         Scanner sc = new Scanner(System.in);
         partitionNumber = sc.nextInt();
         for (int i=0 ; i<partitionNumber ; i++)
         {
-//            System.out.println("Partition name and its size.");
+            System.out.println("Partition #" + (i + 1));
+            System.out.println("Partition name: ");
             Pair partition = new Pair();
             partition.name = sc.next();
+            System.out.println("Partition size: ");
             partition.size = sc.nextInt();
             partitions.add(partition);
-//            partitionsMap.put(partition , "");
         }
         //Fill processes
-//        System.out.println("Enter number of partition:");
+        System.out.println("Enter number of processes:");
         int processesNumber , processSize;
         String processName;
         processesNumber = sc.nextInt();
         for (int i=0 ; i<processesNumber ; i++)
         {
-//            System.out.println("Process name and its size.");
+
+            System.out.println("Process #" + (i + 1));
+            System.out.println("Process name: ");
             Pair process = new Pair();
             process.name = sc.next();
+            System.out.println("Process size: ");
             process.size = sc.nextInt();
             processes.add(process);
         }
@@ -78,7 +82,6 @@ public class main {
                 worstFit.compact();
                 worstFit.print();
             }
-//            worstFit.worstFit(partitions , processes, false);
         }
         else if(selection == 3){
             BestFit bestFit = new BestFit(partitions, processes);

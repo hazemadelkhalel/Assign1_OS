@@ -77,7 +77,7 @@ public class FirstFit {
                 allocation.put(partitions.get(j), processName);
                 int remain = partitions.get(j).size - processSize;
                 partitions.get(j).size = processSize;
-                if(remain == 0)continue;
+                if(remain == 0)break;
                 Pair partition = new Pair();
                 partition.name = "Partition-" + lastName++;
                 partition.size = remain;
